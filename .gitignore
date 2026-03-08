@@ -1,0 +1,30 @@
+# то что server.jar сам создаст + личная информация + резервные копии
+world/
+logs/
+crash-reports/
+debug/
+usercache.json
+whitelist.json
+ops.json
+banned-ips.json
+banned-players.json
+backups/
+EasyAuth/
+
+# Сами моды не храним в Git (они есть в mods.txt)
+mods/
+libraries/
+.fabric/
+server.jar
+
+# Игнорируем только тяжелые кэши и временные файлы внутри конфигов
+config/*/cache/
+config/**/*.bak
+config/**/*.old
+config/modernfix/
+
+# Игнорируем файлы с паролями и токенами
+.env
+frpc.ini
+auth.json
+*.key

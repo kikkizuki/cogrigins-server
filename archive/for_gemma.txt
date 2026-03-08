@@ -1,0 +1,147 @@
+﻿=== АРХИВНЫЕ СКРИПТЫ ДЛЯ АНАЛИЗА ===
+
+--- НАЧАЛО ФАЙЛА: backup.sh ---
+#!/bin/bash
+SERVER_DIR="/home/minecraft/Server"
+WORLD_NAME="Cogrigins"
+BACKUP_DIR="$SERVER_DIR/backups"
+DATE=$(date +%Y-%m-%d_%H-%M)
+
+# Создаём папку для бекапов, если её нет
+mkdir -p "$BACKUP_DIR"
+
+# Проверяем, существует ли папка мира
+if [ ! -d "$SERVER_DIR/$WORLD_NAME" ]; then
+    echo "? Папка мира '$WORLD_NAME' не найдена по пути: $SERVER_DIR/$WORLD_NAME"
+    exit 1
+fi
+
+# Отправляем команды серверу через screen (имя сессии — mc)
+screen -S mc -X stuff "say [BACKUP] Begin saving the world to directory...$(printf \\r)"
+screen -S mc -X stuff "save-off$(printf \\r)"
+screen -S mc -X stuff "save-all flush$(printf \\r)"
+sleep 3
+
+# Копируем мир
+cp -r "$SERVER_DIR/$WORLD_NAME" "$BACKUP_DIR/$WORLD_NAME-$DATE"
+
+# Включаем сохранение
+screen -S mc -X stuff "save-on$(printf \\r)"
+screen -S mc -X stuff "say [BACKUP] Copy done: $WORLD_NAME-$DATE$(printf \\r)"
+
+# Удалять бекапы старше 7 дней
+find "$BACKUP_DIR" -name "Cogrigins-*" -type d -mtime +7 -exec rm -rf {} \;
+
+echo "? backup saved: $BACKUP_DIR/$WORLD_NAME-$DATE"
+--- КОНЕЦ ФАЙЛА: backup.sh ---
+
+--- НАЧАЛО ФАЙЛА: restart.sh ---
+#!/bin/bash
+cd ~/Server
+
+AUTO_RESTART=true
+
+while true; do
+    if [ "$AUTO_RESTART" = true ]; then
+        echo "$(date): Starting Minecraft server..."
+        ./start.sh
+
+        EXIT_CODE=$?
+        echo "$(date): Server stopped with exit code: $EXIT_CODE"
+
+        # Р•СЃР»Рё СЃРµСЂРІРµСЂ РѕСЃС‚Р°РЅРѕРІР»РµРЅ РєРѕРјР°РЅРґРѕР№ stop (РЅРѕСЂРјР°Р»СЊРЅС‹Р№ РІС‹С…РѕРґ)
+        if [ $EXIT_CODE -eq 0 ] || [ $EXIT_CODE -eq 130 ]; then
+            echo "Server was stopped normally. Exiting."
+            break
+        else
+            echo "Server crashed! Restarting in 10 seconds..."
+            sleep 10
+        fi
+    fi
+done
+--- КОНЕЦ ФАЙЛА: restart.sh ---
+
+--- НАЧАЛО ФАЙЛА: restart_daily.sh ---
+#!/bin/bash
+SERVER_DIR="/home/minecraft/Server"
+SCREEN_NAME="mc"
+LOG_FILE="$SERVER_DIR/restart.log"
+
+# Очищаем старый лог (оставляем только последние 100 строк)
+if [ -f "$LOG_FILE" ]; then
+    tail -100 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
+    echo "?? Cleared old log, keeping last 100 lines" >> "$LOG_FILE"
+else
+    touch "$LOG_FILE"
+fi
+
+# Логирование
+echo "=== $(date) ===" >> "$LOG_FILE"
+
+# Проверяем, существует ли screen сессия
+if ! screen -list | grep -q "$SCREEN_NAME"; then
+    echo "? Screen session '$SCREEN_NAME' not found. Starting fresh..." >> "$LOG_FILE"
+    cd "$SERVER_DIR"
+    screen -dmS $SCREEN_NAME ./start.sh
+    echo "? New server started" >> "$LOG_FILE"
+    echo "=== Restart completed ===" >> "$LOG_FILE"
+    exit 0
+fi
+
+echo "?? Starting graceful restart..." >> "$LOG_FILE"
+
+# Шаг 1: Предупредить игроков
+screen -S $SCREEN_NAME -X stuff "say [AUTO-RESTART] Server restart in 5 minutes!$(printf \\r)"
+echo "?? Notified players: 5 minutes" >> "$LOG_FILE"
+sleep 240  # 4 минуты
+
+screen -S $SCREEN_NAME -X stuff "say [AUTO-RESTART] Server restart in 1 minute!$(printf \\r)"  
+echo "?? Notified players: 1 minute" >> "$LOG_FILE"
+sleep 50   # 50 секунд
+
+screen -S $SCREEN_NAME -X stuff "say [AUTO-RESTART] Server restarting in 10 seconds!$(printf \\r)"
+echo "?? Notified players: 10 seconds" >> "$LOG_FILE"
+sleep 10
+
+# Шаг 2: Остановить сервер
+screen -S $SCREEN_NAME -X stuff "say [AUTO-RESTART] Saving world...$(printf \\r)"
+screen -S $SCREEN_NAME -X stuff "save-all$(printf \\r)"
+sleep 5
+
+screen -S $SCREEN_NAME -X stuff "say [AUTO-RESTART] Server stopping...$(printf \\r)"
+screen -S $SCREEN_NAME -X stuff "stop$(printf \\r)"
+echo "?? Sent stop command" >> "$LOG_FILE"
+
+# Шаг 3: Ждем остановки (максимум 30 секунд)
+for i in {1..30}; do
+    if ! screen -list | grep -q "$SCREEN_NAME"; then
+        break
+    fi
+    sleep 1
+done
+
+# Шаг 4: Если не остановился - принудительно
+if screen -list | grep -q "$SCREEN_NAME"; then
+    echo "?? Server didn't stop gracefully, forcing..." >> "$LOG_FILE"
+    screen -S $SCREEN_NAME -X quit
+    sleep 2
+fi
+
+# Шаг 5: Запускаем заново
+echo "?? Starting server..." >> "$LOG_FILE"
+cd "$SERVER_DIR"
+screen -dmS $SCREEN_NAME ./start.sh
+
+# Проверяем что запустился
+sleep 5
+if screen -list | grep -q "$SCREEN_NAME"; then
+    echo "? Server restarted successfully" >> "$LOG_FILE"
+else
+    echo "? Failed to restart server" >> "$LOG_FILE"
+fi
+
+echo "=== Restart completed ===" >> "$LOG_FILE"
+
+# Удаляем лог старше 7 дней (опционально)
+find "$SERVER_DIR" -name "restart.log.*" -mtime +7 -delete 2>/dev/null || true
+--- КОНЕЦ ФАЙЛА: restart_daily.sh ---

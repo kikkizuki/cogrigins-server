@@ -1,0 +1,28 @@
+[
+  {
+    "user": {
+      "type": "player",
+      "name": "Kikkizuki",
+      "uniqueId": "455b0d76-eeb3-3c59-a6f8-bf6f07e9c2cf"
+    },
+    "time": 1771674723186,
+    "type": "Profiler (live)",
+    "data": {
+      "type": "url",
+      "value": "https://spark.lucko.me/PdQwKhiSuA"
+    }
+  },
+  {
+    "user": {
+      "type": "player",
+      "name": "Kikkizuki",
+      "uniqueId": "455b0d76-eeb3-3c59-a6f8-bf6f07e9c2cf"
+    },
+    "time": 1771167004600,
+    "type": "Heap dump",
+    "data": {
+      "type": "file",
+      "value": "./config/spark/heap-2026-02-15_14.50.02.hprof"
+    }
+  }
+]
