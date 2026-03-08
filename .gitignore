@@ -22,6 +22,7 @@ config/*/cache/
 config/**/*.bak
 config/**/*.old
 config/modernfix/
+*.hprof
 
 # Игнорируем файлы с паролями и токенами
 .env
