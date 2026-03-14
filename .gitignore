@@ -29,3 +29,5 @@ config/modernfix/
 frpc.ini
 auth.json
 *.key
+# Служебный файл
+replacements.txt
