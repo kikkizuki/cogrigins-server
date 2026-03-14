@@ -27,6 +27,7 @@ netherportalfix-fabric-1.20-13.0.2.jar
 moonlight-1.20-2.16.15-fabric.jar
 memoryleakfix-fabric-1.17+-1.1.5.jar
 lithium-fabric-mc1.20.1-0.11.4.jar
+linearlevels-1.1.2.jar
 letsdo-farm_and_charm-fabric-1.0.14.jar
 ledger-1.2.8.jar
 lazydfu-0.1.3.jar
@@ -34,7 +35,6 @@ kubejs-fabric-2001.6.5-build.16.jar
 krypton-0.2.3.jar
 JustEnoughFarmersRecipes-1.20.1-1.0.1.jar
 jei-1.20.1-fabric-15.20.0.112.jar
-Improved_Anvils-1.0.3-1.20.1.jar
 gravestones-1.2.6+1.20.1+A.jar
 geckolib-fabric-1.20.1-4.8.2.jar
 fusion-1.2.11-fabric-mc1.20.1.jar
@@ -65,3 +65,4 @@ c2me-fabric-mc1.20.1-0.2.0+alpha.11.16.jar
 bellsandwhistles-0.4.5+1.20.1-FABRIC.jar
 balm-fabric-1.20.1-7.3.38.jar
 architectury-9.2.14-fabric.jar
+AnvilFix-20.0.1.jar
